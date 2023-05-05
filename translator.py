@@ -1,5 +1,10 @@
+import re
 import pandas as pd
 from googletrans import Translator, LANGUAGES
+
+def remove_extra_symbols(text):
+    text = re.sub(r'[^a-zA-Z]+', ' ', text)
+    return re.sub(r'\s+', ' ', text)
 
 def translate_text(text, translator):
     translation = translator.translate(text, dest='fa')
@@ -11,12 +16,13 @@ def translate_dataframe_foreach_cell(df):
     columns = df.columns.tolist()
     translated_columns = []
     for column in columns:
+        column = remove_extra_symbols(column)
         translated_columns.append(translate_text(column, translator))
 
     df.columns = translated_columns
 
     for column in df.columns:
-        df[column] = df[column].map(lambda x: translate_text(x, translator) if pd.notnull(x) else x)
+        df[column] = df[column].map(lambda x: translate_text(remove_extra_symbols(x), translator) if pd.notnull(x) else x)
     return df
 
 def translate_dataframe_for_multiple_cell(df):
@@ -37,7 +43,7 @@ def translate_dataframe_for_multiple_cell(df):
 def main():
     df = pd.read_csv('er.csv')
 
-    translated_df = translate_dataframe_for_multiple_cell(df)
+    translated_df = translate_dataframe_foreach_cell(df)
     translated_df.to_csv('ep12_fa.csv', index=False)
 
 if __name__ == "__main__":
